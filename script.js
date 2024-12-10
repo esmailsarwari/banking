@@ -64,7 +64,9 @@ const displayMovement = (movements) => {
         const movementType = mov > 0 ? 'deposit' : 'withdrawal';
         const html = `
             <div class="movements__row">
-                <div class="movements__type movements__type--${movementType}"> ${i + 1} ${movementType}</div>
+                <div class="movements__type movements__type--${movementType}"> ${
+            i + 1
+        } ${movementType}</div>
                 <div class="movements__date">24/01/2037</div>
                 <div class="movements__value">-${mov}</div>
             </div>
@@ -72,8 +74,13 @@ const displayMovement = (movements) => {
         containerMovements.insertAdjacentHTML('afterbegin', html);
     });
 };
-
 displayMovement(account1.movements);
+
+const calcDispalyBalance = (movements) => {
+    const balance = movements.reduce((acc, curr) => acc + curr);
+    labelBalance.textContent = `${balance} EUR`;
+};
+calcDispalyBalance(account1.movements);
 
 const currencies = new Map([
     ['USD', 'United States dollar'],

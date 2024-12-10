@@ -68,7 +68,7 @@ const displayMovement = (movements) => {
             i + 1
         } ${movementType}</div>
                 <div class="movements__date">24/01/2037</div>
-                <div class="movements__value">-${mov}</div>
+                <div class="movements__value">-${mov}€</div>
             </div>
         `;
         containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -78,9 +78,29 @@ displayMovement(account1.movements);
 
 const calcDispalyBalance = (movements) => {
     const balance = movements.reduce((acc, curr) => acc + curr);
-    labelBalance.textContent = `${balance} EUR`;
+    labelBalance.textContent = `${balance}€`;
 };
 calcDispalyBalance(account1.movements);
+
+const calcDiplaySummary = (movements) => {
+    const totalDeposits = movements
+        .filter((mov) => mov > 0)
+        .reduce((acc, mov) => acc + mov);
+    labelSumIn.textContent = `${totalDeposits}€`;
+
+    const totalWithdrawals = movements
+        .filter((mov) => mov < 0)
+        .reduce((acc, mov) => acc + mov);
+    labelSumOut.textContent = `${totalWithdrawals}€`;
+
+    const totalInterest = movements
+        .filter((deposit) => deposit > 0) // only deposits
+        .map((deposit) => (deposit * 1.2) / 100) // each deposit * 1.12
+        .filter(deposit => deposit > 1) // only ineteset greater than 1 euro
+        .reduce((acc, curr) => acc + curr); // sum of interest of each deposits
+    labelSumInterest.textContent = `${totalInterest}€`;
+};
+calcDiplaySummary(account1.movements);
 
 const currencies = new Map([
     ['USD', 'United States dollar'],

@@ -74,33 +74,74 @@ const displayMovement = (movements) => {
         containerMovements.insertAdjacentHTML('afterbegin', html);
     });
 };
-displayMovement(account1.movements);
 
-const calcDispalyBalance = (movements) => {
-    const balance = movements.reduce((acc, curr) => acc + curr);
+const calcDispalyBalance = (acc) => {
+    const balance = acc.movements.reduce((acc, curr) => acc + curr);
     labelBalance.textContent = `${balance}€`;
 };
-calcDispalyBalance(account1.movements);
 
-const calcDiplaySummary = (movements) => {
-    const totalDeposits = movements
+const calcDiplaySummary = (acc) => {
+    // display deposits
+    const totalDeposits = acc.movements
         .filter((mov) => mov > 0)
         .reduce((acc, mov) => acc + mov);
     labelSumIn.textContent = `${totalDeposits}€`;
 
-    const totalWithdrawals = movements
+    // display withdrawals
+    const totalWithdrawals = acc.movements
         .filter((mov) => mov < 0)
         .reduce((acc, mov) => acc + mov);
     labelSumOut.textContent = `${totalWithdrawals}€`;
 
-    const totalInterest = movements
-        .filter((deposit) => deposit > 0) // only deposits
-        .map((deposit) => (deposit * 1.2) / 100) // each deposit * 1.12
-        .filter(deposit => deposit > 1) // only ineteset greater than 1 euro
-        .reduce((acc, curr) => acc + curr); // sum of interest of each deposits
+    // display interest rates
+    const totalInterest = acc.movements
+        .filter((deposit) => deposit > 0)
+        .map((deposit) => (deposit * acc.interestRate) / 100)
+        .filter((deposit) => deposit > 1)
+        .reduce((acc, curr) => acc + curr);
     labelSumInterest.textContent = `${totalInterest}€`;
 };
-calcDiplaySummary(account1.movements);
+
+const createUserNames = (accs) => {
+    accs.forEach((acc) => {
+        acc.userName = acc.owner
+            .toLowerCase()
+            .split(' ')
+            .map((initName) => initName[0])
+            .join('');
+    });
+};
+createUserNames(accounts);
+
+let currentAccount;
+btnLogin.addEventListener('click', function (e) {
+    e.preventDefault();
+
+    currentAccount = accounts.find(
+        (acc) => acc.userName === inputLoginUsername.value
+    );
+    // console.log(currentAccount);
+    // check the password
+
+    if (currentAccount?.pin === Number(inputLoginPin.value)) {
+        // wlc message
+        labelWelcome.innerHTML = `Welcom Back, ${
+            currentAccount.owner.split(' ')[0]
+        }`;
+        // display account balacne
+        calcDispalyBalance(currentAccount);
+
+        // display movments
+        displayMovement(currentAccount.movements);
+
+        // deposits, widthrawals and interest
+        calcDiplaySummary(currentAccount);
+    } else {
+        labelWelcome.innerHTML = 'Incorrect Login Info!';
+    }
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
+});
 
 const currencies = new Map([
     ['USD', 'United States dollar'],

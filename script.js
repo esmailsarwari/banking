@@ -57,10 +57,32 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-const displayMovement = (movements) => {
+const createUserNames = (accs) => {
+    accs.forEach((acc) => {
+        acc.userName = acc.owner
+            .toLowerCase()
+            .split(' ')
+            .map((initName) => initName[0])
+            .join('');
+    });
+};
+createUserNames(accounts);
+
+const updateUI = (acc) => {
+    // display account balacne
+    calcDispalyBalance(acc);
+
+    // display movments
+    displayMovement(acc);
+
+    // deposits, widthrawals and interest
+    calcDiplaySummary(acc);
+};
+
+const displayMovement = (acc) => {
     containerMovements.innerHTML = '';
 
-    movements.forEach((mov, i) => {
+    acc.movements.forEach((mov, i) => {
         const movementType = mov > 0 ? 'deposit' : 'withdrawal';
         const html = `
             <div class="movements__row">
@@ -68,7 +90,7 @@ const displayMovement = (movements) => {
             i + 1
         } ${movementType}</div>
                 <div class="movements__date">24/01/2037</div>
-                <div class="movements__value">-${mov}€</div>
+                <div class="movements__value">${mov}€</div>
             </div>
         `;
         containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -78,6 +100,7 @@ const displayMovement = (movements) => {
 const calcDispalyBalance = (acc) => {
     const balance = acc.movements.reduce((acc, curr) => acc + curr);
     labelBalance.textContent = `${balance}€`;
+    acc.balance = balance;
 };
 
 const calcDiplaySummary = (acc) => {
@@ -102,46 +125,68 @@ const calcDiplaySummary = (acc) => {
     labelSumInterest.textContent = `${totalInterest}€`;
 };
 
-const createUserNames = (accs) => {
-    accs.forEach((acc) => {
-        acc.userName = acc.owner
-            .toLowerCase()
-            .split(' ')
-            .map((initName) => initName[0])
-            .join('');
-    });
-};
-createUserNames(accounts);
-
 let currentAccount;
-btnLogin.addEventListener('click', function (e) {
+const loginFunctionality = (e) => {
     e.preventDefault();
 
-    currentAccount = accounts.find(
-        (acc) => acc.userName === inputLoginUsername.value
-    );
-    // console.log(currentAccount);
-    // check the password
+    const enteredUsername = inputLoginUsername.value.trim();
+    const entredPin = Number(inputLoginPin.value.trim());
 
-    if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    currentAccount = accounts.find((acc) => acc.userName === enteredUsername);
+
+    // check the password
+    if (currentAccount?.pin === entredPin) {
         // wlc message
-        labelWelcome.innerHTML = `Welcom Back, ${
+        labelWelcome.textContent = `Welcom Back, ${
             currentAccount.owner.split(' ')[0]
         }`;
-        // display account balacne
-        calcDispalyBalance(currentAccount);
 
-        // display movments
-        displayMovement(currentAccount.movements);
-
-        // deposits, widthrawals and interest
-        calcDiplaySummary(currentAccount);
+        // Display the main application UI
+        containerApp.style.opacity = 1;
     } else {
-        labelWelcome.innerHTML = 'Incorrect Login Info!';
+        labelWelcome.textContent = 'Incorrect Login Info!';
     }
+
+    updateUI(currentAccount);
+
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
-});
+};
+
+const moneyTransferFunctionality = (e) => {
+    e.preventDefault();
+
+    // Get the transfer user and amount
+    const enteredTransferToAccount = accounts.find(
+        (acc) => acc.userName === inputTransferTo.value.trim()
+    );
+    const enteredTranserAmount = Number(inputTransferAmount.value.trim());
+
+    // transfer input validation
+    if (enteredTranserAmount == '' || enteredTransferToAccount == '')
+        return (labelWelcome.textContent =
+            'Please enter valid username and account');
+
+    // check for sender and receiver
+    if (
+        currentAccount?.balance >= enteredTranserAmount &&
+        enteredTransferToAccount?.userName !== currentAccount.userName
+    ) {
+        // transfer operation
+        currentAccount.movements.push(-enteredTranserAmount);
+        enteredTransferToAccount.movements.push(enteredTranserAmount);
+    } else {
+        labelWelcome.textContent = "Your Balance Isn't Enough ";
+    }
+    // update the UI
+    updateUI(currentAccount);
+    inputTransferTo.value = inputTransferAmount.value = '';
+    inputTransferAmount.blur();
+};
+
+// eventlisteners
+btnLogin.addEventListener('click', loginFunctionality);
+btnTransfer.addEventListener('click', moneyTransferFunctionality);
 
 const currencies = new Map([
     ['USD', 'United States dollar'],

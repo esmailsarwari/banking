@@ -184,9 +184,33 @@ const moneyTransferFunctionality = (e) => {
     inputTransferAmount.blur();
 };
 
+const closeAccountFunctionality = (e) => {
+    e.preventDefault();
+
+    const enteredToCloseAccount = inputCloseUsername.value.trim().toLowerCase();
+    const enteredToCloseAccountPin = Number(inputClosePin.value.trim());
+
+    if (
+        currentAccount.userName === enteredToCloseAccount &&
+        currentAccount.pin === enteredToCloseAccountPin
+    ) {
+        // find the index of the current account to close
+        const currentAccountIndex = accounts.findIndex(
+            (acc) => acc.userName === currentAccount.userName
+        );
+
+        // Account closing opetation
+        accounts.splice(currentAccountIndex, 1);
+
+        labelWelcome.textContent = 'Account Closed Successfully!';
+        containerApp.style.opacity = 0;
+    }
+};
+
 // eventlisteners
 btnLogin.addEventListener('click', loginFunctionality);
 btnTransfer.addEventListener('click', moneyTransferFunctionality);
+btnClose.addEventListener('click', closeAccountFunctionality);
 
 const currencies = new Map([
     ['USD', 'United States dollar'],

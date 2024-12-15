@@ -79,10 +79,14 @@ const updateUI = (acc) => {
     calcDiplaySummary(acc);
 };
 
-const displayMovement = (acc) => {
+const displayMovement = (acc, sort = false) => {
     containerMovements.innerHTML = '';
 
-    acc.movements.forEach((mov, i) => {
+    const movs = sort
+        ? acc.movements.slice().sort((a, b) => a - b)
+        : acc.movements;
+
+    movs.forEach((mov, i) => {
         const movementType = mov > 0 ? 'deposit' : 'withdrawal';
         const html = `
             <div class="movements__row">
@@ -225,11 +229,20 @@ const closeAccountFunctionality = (e) => {
     }
 };
 
+let sorted = false;
+const sortMovsFunctionality = (e) => {
+    e.preventDefault();
+
+    displayMovement(currentAccount, !sorted);
+    sorted = !sorted;
+};
+
 // eventlisteners
 btnLogin.addEventListener('click', loginFunctionality);
 btnTransfer.addEventListener('click', moneyTransferFunctionality);
 btnLoan.addEventListener('click', requestLoanFunctionality);
 btnClose.addEventListener('click', closeAccountFunctionality);
+btnSort.addEventListener('click', sortMovsFunctionality);
 
 const currencies = new Map([
     ['USD', 'United States dollar'],

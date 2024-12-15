@@ -184,6 +184,24 @@ const moneyTransferFunctionality = (e) => {
     inputTransferAmount.blur();
 };
 
+const requestLoanFunctionality = (e) => {
+    e.preventDefault();
+
+    const loanAmount = Number(inputLoanAmount.value.trim());
+
+    if (
+        loanAmount > 0 &&
+        currentAccount.balance > 0 &&
+        currentAccount.movements.some((mov) => mov > loanAmount * 0.1)
+    ) {
+        currentAccount.movements.push(loanAmount);
+        updateUI(currentAccount);
+        labelWelcome.textContent = 'Congrats, Your Loan Request Approved';
+    } else {
+        labelWelcome.textContent = 'Insufficient Balance or History';
+    }
+};
+
 const closeAccountFunctionality = (e) => {
     e.preventDefault();
 
@@ -210,6 +228,7 @@ const closeAccountFunctionality = (e) => {
 // eventlisteners
 btnLogin.addEventListener('click', loginFunctionality);
 btnTransfer.addEventListener('click', moneyTransferFunctionality);
+btnLoan.addEventListener('click', requestLoanFunctionality);
 btnClose.addEventListener('click', closeAccountFunctionality);
 
 const currencies = new Map([

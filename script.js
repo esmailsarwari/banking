@@ -2,35 +2,79 @@
 
 // Data
 const account1 = {
+    userName: 'js',
     owner: 'Jonas Schmedtmann',
     movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
     interestRate: 1.2, // %
     pin: 1111,
     type: 'premium',
+    movementsDate: [
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+    ],
 };
 
 const account2 = {
+    userName: 'jd',
     owner: 'Jessica Davis',
     movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
     interestRate: 1.5,
     pin: 2222,
     type: 'standard',
+    movementsDate: [
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+    ],
 };
 
 const account3 = {
+    userName: 'stw',
     owner: 'Steven Thomas Williams',
     movements: [200, -200, 340, -300, -20, 50, 400, -460],
     interestRate: 0.7,
     pin: 3333,
     type: 'premium',
+    movementsDate: [
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+    ],
 };
 
 const account4 = {
+    userName: 'ss',
     owner: 'Sarah Smith',
     movements: [430, 1000, 700, 50, 90],
     interestRate: 1,
     pin: 4444,
     type: 'basic',
+    movementsDate: [
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+        '2025-05-01T02:32:57.286Z',
+    ],
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -70,7 +114,7 @@ const createUserNames = (accs) => {
             .join('');
     });
 };
-createUserNames(accounts);
+accounts;
 
 const updateUI = (acc) => {
     // display account balacne
@@ -91,17 +135,31 @@ const displayMovement = (acc, sort = false) => {
         : acc.movements;
 
     movs.forEach((mov, i) => {
+        const movDate = new Date(acc.movementsDate[i]);
+        const month = `${movDate.getMonth() + 1}`.padStart(2, 0);
+        const day = `${movDate.getDate()}`.padStart(2, 0);
+        const year = movDate.getFullYear();
+
+        const hours = `${movDate.getHours()}`.padStart(2, 0);
+        const minutes = `${movDate.getMinutes()}`.padStart(2, 0);
+
+        const fullTime = `${hours}:${minutes}`;
+        const fullDate = `${month}/${day}/${year}`;
+
         const movementType = mov > 0 ? 'deposit' : 'withdrawal';
-        const html = `
+        const movementsHtmlElement = `
             <div class="movements__row">
                 <div class="movements__type movements__type--${movementType}"> ${
             i + 1
-        } ${movementType}</div>
-                <div class="movements__date">24/01/2037</div>
+        } ${movementType} </div>
+                <div class="movements__date">${fullDate + ' ' + fullTime}</div>
                 <div class="movements__value">${mov}€</div>
             </div>
         `;
-        containerMovements.insertAdjacentHTML('afterbegin', html);
+        containerMovements.insertAdjacentHTML(
+            'afterbegin',
+            movementsHtmlElement
+        );
     });
 };
 
@@ -154,6 +212,18 @@ const loginFunctionality = (e) => {
     } else {
         labelWelcome.textContent = 'Incorrect Login Info!';
     }
+    const now = new Date();
+    const month = `${now.getMonth() + 1}`.padStart(2, 0);
+    const day = `${now.getDate()}`.padStart(2, 0);
+    const year = now.getFullYear();
+
+    const hours = `${now.getHours()}`.padStart(2, 0);
+    const minutes = `${now.getMinutes()}`.padStart(2, 0);
+
+    const fullTime = `${hours}:${minutes}`;
+    const fullDate = `${month}/${day}/${year}`;
+
+    labelDate.textContent = fullDate + ' ' + fullTime;
 
     updateUI(currentAccount);
 
@@ -183,6 +253,10 @@ const moneyTransferFunctionality = (e) => {
         // transfer operation
         currentAccount.movements.push(-enteredTranserAmount);
         enteredTransferToAccount.movements.push(enteredTranserAmount);
+
+        // Transfer date
+        currentAccount.movementsDate.push(new Date().toISOString());
+        enteredTransferToAccount.movementsDate.push(new Date().toISOString());
     } else {
         labelWelcome.textContent = "Your Balance Isn't Enough ";
     }
@@ -203,6 +277,7 @@ const requestLoanFunctionality = (e) => {
         currentAccount.movements.some((mov) => mov > loanAmount * 0.1)
     ) {
         currentAccount.movements.push(loanAmount);
+        currentAccount.movementsDate.push(new Date().toISOString());
         updateUI(currentAccount);
         labelWelcome.textContent = 'Congrats, Your Loan Request Approved';
     } else {

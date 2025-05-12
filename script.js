@@ -105,6 +105,28 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+const formateMovementsDate = (movDate) => {
+    const month = `${movDate.getMonth() + 1}`.padStart(2, 0);
+    const day = `${movDate.getDate()}`.padStart(2, 0);
+    const year = movDate.getFullYear();
+
+    const hours = `${movDate.getHours()}`.padStart(2, 0);
+    const minutes = `${movDate.getMinutes()}`.padStart(2, 0);
+
+    const fullTime = `${hours}:${minutes}`;
+    const fullDate = `${month}/${day}/${year}`;
+
+    const calcDaysPassed = (date1, date2) =>
+        Math.round(Math.abs((+date1 - +date2) / (24 * 60 * 60 * 1000)));
+    const daysPassed = calcDaysPassed(new Date(), movDate);
+    console.log('days pased: ', daysPassed);
+
+    if (daysPassed === 0) return { fullDate: 'today', fullTime };
+    if (daysPassed === 1) return { fullDate: 'Yesterday', fullTime };
+    if (daysPassed <= 7) return `fullDate: ${daysPassed} days ago, fullTime`;
+    return { fullDate, fullTime };
+};
+
 const createUserNames = (accs) => {
     accs.forEach((acc) => {
         acc.userName = acc.owner
@@ -136,27 +158,21 @@ const displayMovement = (acc, sort = false) => {
         movementsDate: acc.movementsDate.at(i),
     }));
 
-    console.log(movementsWithDates);
-
-    if(sort) movementsWithDates.sort((a, b) => a.movements - b.movements);
+    if (sort) movementsWithDates.sort((a, b) => a.movements - b.movements);
 
     movementsWithDates.forEach((obj, i) => {
         const movDate = new Date(obj.movementsDate);
-        const month = `${movDate.getMonth() + 1}`.padStart(2, 0);
-        const day = `${movDate.getDate()}`.padStart(2, 0);
-        const year = movDate.getFullYear();
-
-        const hours = `${movDate.getHours()}`.padStart(2, 0);
-        const minutes = `${movDate.getMinutes()}`.padStart(2, 0);
-
-        const fullTime = `${hours}:${minutes}`;
-        const fullDate = `${month}/${day}/${year}`;
+        const fullDateAndtime = formateMovementsDate(movDate);
 
         const movementType = obj.movements > 0 ? 'deposit' : 'withdrawal';
         const movementsHtmlElement = `
             <div class="movements__row">
-                <div class="movements__type movements__type--${movementType}"> ${i + 1} ${movementType} </div>
-                <div class="movements__date">${fullDate + ' ' + fullTime}</div>
+                <div class="movements__type movements__type--${movementType}"> ${
+            i + 1
+        } ${movementType} </div>
+                <div class="movements__date">${
+                    fullDateAndtime.fullDate + ' ' + fullDateAndtime.fullTime
+                }</div>
                 <div class="movements__value">${obj.movements}€</div>
             </div>
         `;
@@ -332,7 +348,5 @@ const currencies = new Map([
     ['EUR', 'Euro'],
     ['GBP', 'Pound sterling'],
 ]);
-
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////

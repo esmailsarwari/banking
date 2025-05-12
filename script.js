@@ -130,12 +130,18 @@ const updateUI = (acc) => {
 const displayMovement = (acc, sort = false) => {
     containerMovements.innerHTML = '';
 
-    const movs = sort
-        ? acc.movements.slice().sort((a, b) => a - b)
-        : acc.movements;
+    // retrive account movements with its corresponding dates
+    const movementsWithDates = acc.movements.map((mov, i) => ({
+        movements: mov,
+        movementsDate: acc.movementsDate.at(i),
+    }));
 
-    movs.forEach((mov, i) => {
-        const movDate = new Date(acc.movementsDate[i]);
+    console.log(movementsWithDates);
+
+    if(sort) movementsWithDates.sort((a, b) => a.movements - b.movements);
+
+    movementsWithDates.forEach((obj, i) => {
+        const movDate = new Date(obj.movementsDate);
         const month = `${movDate.getMonth() + 1}`.padStart(2, 0);
         const day = `${movDate.getDate()}`.padStart(2, 0);
         const year = movDate.getFullYear();
@@ -146,14 +152,12 @@ const displayMovement = (acc, sort = false) => {
         const fullTime = `${hours}:${minutes}`;
         const fullDate = `${month}/${day}/${year}`;
 
-        const movementType = mov > 0 ? 'deposit' : 'withdrawal';
+        const movementType = obj.movements > 0 ? 'deposit' : 'withdrawal';
         const movementsHtmlElement = `
             <div class="movements__row">
-                <div class="movements__type movements__type--${movementType}"> ${
-            i + 1
-        } ${movementType} </div>
+                <div class="movements__type movements__type--${movementType}"> ${i + 1} ${movementType} </div>
                 <div class="movements__date">${fullDate + ' ' + fullTime}</div>
-                <div class="movements__value">${mov}€</div>
+                <div class="movements__value">${obj.movements}€</div>
             </div>
         `;
         containerMovements.insertAdjacentHTML(

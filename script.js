@@ -106,25 +106,17 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 const formateMovementsDate = (movDate) => {
-    const month = `${movDate.getMonth() + 1}`.padStart(2, 0);
-    const day = `${movDate.getDate()}`.padStart(2, 0);
-    const year = movDate.getFullYear();
-
-    const hours = `${movDate.getHours()}`.padStart(2, 0);
-    const minutes = `${movDate.getMinutes()}`.padStart(2, 0);
-
-    const fullTime = `${hours}:${minutes}`;
-    const fullDate = `${month}/${day}/${year}`;
-
     const calcDaysPassed = (date1, date2) =>
         Math.round(Math.abs((+date1 - +date2) / (24 * 60 * 60 * 1000)));
     const daysPassed = calcDaysPassed(new Date(), movDate);
-    console.log('days pased: ', daysPassed);
 
     if (daysPassed === 0) return { fullDate: 'today', fullTime };
     if (daysPassed === 1) return { fullDate: 'Yesterday', fullTime };
     if (daysPassed <= 7) return `fullDate: ${daysPassed} days ago, fullTime`;
-    return { fullDate, fullTime };
+    return new Intl.DateTimeFormat('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+    }).format(movDate);
 };
 
 const createUserNames = (accs) => {
@@ -170,9 +162,7 @@ const displayMovement = (acc, sort = false) => {
                 <div class="movements__type movements__type--${movementType}"> ${
             i + 1
         } ${movementType} </div>
-                <div class="movements__date">${
-                    fullDateAndtime.fullDate + ' ' + fullDateAndtime.fullTime
-                }</div>
+                <div class="movements__date">${fullDateAndtime}</div>
                 <div class="movements__value">${obj.movements}€</div>
             </div>
         `;
@@ -232,18 +222,18 @@ const loginFunctionality = (e) => {
     } else {
         labelWelcome.textContent = 'Incorrect Login Info!';
     }
+
+    // Set local time and lanague for the logged in user
     const now = new Date();
-    const month = `${now.getMonth() + 1}`.padStart(2, 0);
-    const day = `${now.getDate()}`.padStart(2, 0);
-    const year = now.getFullYear();
-
-    const hours = `${now.getHours()}`.padStart(2, 0);
-    const minutes = `${now.getMinutes()}`.padStart(2, 0);
-
-    const fullTime = `${hours}:${minutes}`;
-    const fullDate = `${month}/${day}/${year}`;
-
-    labelDate.textContent = fullDate + ' ' + fullTime;
+    const userLocaleLanaguage = navigator.language;
+    const options = {
+        dateStyle: 'full',
+        timeStyle: 'short',
+    };
+    labelDate.textContent = new Intl.DateTimeFormat(
+        [userLocaleLanaguage, 'en-US'],
+        options
+    ).format(now);
 
     updateUI(currentAccount);
 

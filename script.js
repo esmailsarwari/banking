@@ -118,9 +118,9 @@ const formateMovementsDate = (movDate) => {
         Math.round(Math.abs((+date1 - +date2) / (24 * 60 * 60 * 1000)));
     const daysPassed = calcDaysPassed(new Date(), movDate);
 
-    if (daysPassed === 0) return { fullDate: 'today', fullTime };
-    if (daysPassed === 1) return { fullDate: 'Yesterday', fullTime };
-    if (daysPassed <= 7) return `fullDate: ${daysPassed} days ago, fullTime`;
+    if (daysPassed === 0) return { fullDate: 'today' };
+    if (daysPassed === 1) return { fullDate: 'Yesterday' };
+    if (daysPassed <= 7) return `fullDate: ${daysPassed} days ago`;
     return new Intl.DateTimeFormat('en-US', {
         dateStyle: 'medium',
         timeStyle: 'medium',
@@ -174,12 +174,18 @@ const displayMovement = (acc, sort = false) => {
         const fullDateAndtime = formateMovementsDate(movDate);
 
         // localize the currency
-        const localizedMovements = formateCurreny(obj.movements, acc.locale, acc.currency);
-    
+        const localizedMovements = formateCurreny(
+            obj.movements,
+            acc.locale,
+            acc.currency
+        );
+
         const movementType = obj.movements > 0 ? 'deposit' : 'withdrawal';
         const movementsHtmlElement = `
             <div class="movements__row">
-                <div class="movements__type movements__type--${movementType}"> ${i + 1} ${movementType} </div>
+                <div class="movements__type movements__type--${movementType}"> ${
+            i + 1
+        } ${movementType} </div>
                 <div class="movements__date">${fullDateAndtime}</div>
                 <div class="movements__value">${localizedMovements}</div>
             </div>
@@ -194,7 +200,11 @@ const displayMovement = (acc, sort = false) => {
 const calcDispalyBalance = (acc) => {
     const balance = acc.movements.reduce((acc, curr) => acc + curr);
     acc.balance = balance;
-    labelBalance.textContent = formateCurreny(acc.balance, acc.locale, acc.currency);
+    labelBalance.textContent = formateCurreny(
+        acc.balance,
+        acc.locale,
+        acc.currency
+    );
 };
 
 const calcDiplaySummary = (acc) => {
@@ -202,13 +212,21 @@ const calcDiplaySummary = (acc) => {
     const totalDeposits = acc.movements
         .filter((mov) => mov > 0)
         .reduce((acc, mov) => acc + mov);
-    labelSumIn.textContent = formateCurreny(totalDeposits, acc.locale, acc.currency);
+    labelSumIn.textContent = formateCurreny(
+        totalDeposits,
+        acc.locale,
+        acc.currency
+    );
 
     // display withdrawals
     const totalWithdrawals = acc.movements
         .filter((mov) => mov < 0)
         .reduce((acc, mov) => acc + mov);
-    labelSumOut.textContent = formateCurreny(totalWithdrawals, acc.locale, acc.currency);
+    labelSumOut.textContent = formateCurreny(
+        totalWithdrawals,
+        acc.locale,
+        acc.currency
+    );
 
     // display interest rates
     const totalInterest = acc.movements
@@ -216,7 +234,11 @@ const calcDiplaySummary = (acc) => {
         .map((deposit) => (deposit * acc.interestRate) / 100)
         .filter((deposit) => deposit > 1)
         .reduce((acc, curr) => acc + curr);
-    labelSumInterest.textContent = formateCurreny(totalInterest, acc.locale, acc.currency);
+    labelSumInterest.textContent = formateCurreny(
+        totalInterest,
+        acc.locale,
+        acc.currency
+    );
 };
 
 let currentAccount;
@@ -304,10 +326,13 @@ const requestLoanFunctionality = (e) => {
         currentAccount.balance > 0 &&
         currentAccount.movements.some((mov) => mov > loanAmount * 0.1)
     ) {
-        currentAccount.movements.push(loanAmount);
-        currentAccount.movementsDate.push(new Date().toISOString());
-        updateUI(currentAccount);
-        labelWelcome.textContent = 'Congrats, Your Loan Request Approved';
+        setTimeout(() => {
+            currentAccount.movements.push(loanAmount);
+            currentAccount.movementsDate.push(new Date().toISOString());
+            updateUI(currentAccount);
+            labelWelcome.textContent = 'Congrats, Your Loan Request Approved';
+            inputLoanAmount.value = '';
+        }, 3000);
     } else {
         labelWelcome.textContent = 'Insufficient Balance or History';
     }

@@ -18,6 +18,8 @@ const account1 = {
         '2025-05-01T02:32:57.286Z',
         '2025-05-01T02:32:57.286Z',
     ],
+    locale: 'en-US',
+    currency: 'USD',
 };
 
 const account2 = {
@@ -37,6 +39,8 @@ const account2 = {
         '2025-05-01T02:32:57.286Z',
         '2025-05-01T02:32:57.286Z',
     ],
+    locale: 'en-UK',
+    currency: 'GBP',
 };
 
 const account3 = {
@@ -56,6 +60,8 @@ const account3 = {
         '2025-05-01T02:32:57.286Z',
         '2025-05-01T02:32:57.286Z',
     ],
+    locale: 'en-gb',
+    currency: 'GBP',
 };
 
 const account4 = {
@@ -75,6 +81,8 @@ const account4 = {
         '2025-05-01T02:32:57.286Z',
         '2025-05-01T02:32:57.286Z',
     ],
+    locale: 'sv-SV',
+    currency: 'SEK',
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -119,6 +127,13 @@ const formateMovementsDate = (movDate) => {
     }).format(movDate);
 };
 
+const formateCurreny = (value, locale, currency) => {
+    return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency,
+    }).format(value);
+};
+
 const createUserNames = (accs) => {
     accs.forEach((acc) => {
         acc.userName = acc.owner
@@ -150,20 +165,23 @@ const displayMovement = (acc, sort = false) => {
         movementsDate: acc.movementsDate.at(i),
     }));
 
+    // Sort Movements
     if (sort) movementsWithDates.sort((a, b) => a.movements - b.movements);
 
     movementsWithDates.forEach((obj, i) => {
+        // get the formated time and date
         const movDate = new Date(obj.movementsDate);
         const fullDateAndtime = formateMovementsDate(movDate);
 
+        // localize the currency
+        const localizedMovements = formateCurreny(obj.movements, acc.locale, acc.currency);
+    
         const movementType = obj.movements > 0 ? 'deposit' : 'withdrawal';
         const movementsHtmlElement = `
             <div class="movements__row">
-                <div class="movements__type movements__type--${movementType}"> ${
-            i + 1
-        } ${movementType} </div>
+                <div class="movements__type movements__type--${movementType}"> ${i + 1} ${movementType} </div>
                 <div class="movements__date">${fullDateAndtime}</div>
-                <div class="movements__value">${obj.movements}€</div>
+                <div class="movements__value">${localizedMovements}</div>
             </div>
         `;
         containerMovements.insertAdjacentHTML(
@@ -175,8 +193,8 @@ const displayMovement = (acc, sort = false) => {
 
 const calcDispalyBalance = (acc) => {
     const balance = acc.movements.reduce((acc, curr) => acc + curr);
-    labelBalance.textContent = `${balance}€`;
     acc.balance = balance;
+    labelBalance.textContent = formateCurreny(acc.balance, acc.locale, acc.currency);
 };
 
 const calcDiplaySummary = (acc) => {
@@ -184,13 +202,13 @@ const calcDiplaySummary = (acc) => {
     const totalDeposits = acc.movements
         .filter((mov) => mov > 0)
         .reduce((acc, mov) => acc + mov);
-    labelSumIn.textContent = `${totalDeposits}€`;
+    labelSumIn.textContent = formateCurreny(totalDeposits, acc.locale, acc.currency);
 
     // display withdrawals
     const totalWithdrawals = acc.movements
         .filter((mov) => mov < 0)
         .reduce((acc, mov) => acc + mov);
-    labelSumOut.textContent = `${totalWithdrawals}€`;
+    labelSumOut.textContent = formateCurreny(totalWithdrawals, acc.locale, acc.currency);
 
     // display interest rates
     const totalInterest = acc.movements
@@ -198,7 +216,7 @@ const calcDiplaySummary = (acc) => {
         .map((deposit) => (deposit * acc.interestRate) / 100)
         .filter((deposit) => deposit > 1)
         .reduce((acc, curr) => acc + curr);
-    labelSumInterest.textContent = `${totalInterest}€`;
+    labelSumInterest.textContent = formateCurreny(totalInterest, acc.locale, acc.currency);
 };
 
 let currentAccount;

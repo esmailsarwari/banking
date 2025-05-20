@@ -134,6 +134,38 @@ const formateCurreny = (value, locale, currency) => {
     }).format(value);
 };
 
+const setLogoutTimer = () => {
+    let timeOutDuration = 5000;
+
+    // this function trigers the countdown
+    const tick = () => {
+        const timeOutMinute = String(Math.trunc(timeOutDuration / 60)).padStart(
+            2,
+            0
+        );
+        const timeOutSeconds = String(
+            Math.trunc(timeOutDuration % 60)
+        ).padStart(2, 0);
+
+        labelTimer.textContent = `${timeOutMinute}:${timeOutSeconds}`;
+
+        if (timeOutDuration === 0) {
+            clearInterval(loginTimerCountDown);
+            containerApp.style.opacity = 0;
+            labelWelcome.textContent = 'Log in to get started';
+        }
+
+        timeOutDuration--;
+    };
+
+    // call tick function to start the countdown immediately after login
+    tick();
+    // then it gets called after every second
+    const loginTimerCountDown = setInterval(tick, 1000);
+    // return loggedin user timer to prevent overriding of multiple logged in user
+    return loginTimerCountDown;
+};
+
 const createUserNames = (accs) => {
     accs.forEach((acc) => {
         acc.userName = acc.owner
@@ -143,9 +175,8 @@ const createUserNames = (accs) => {
             .join('');
     });
 };
-accounts;
 
-const updateUI = (acc) => {
+function updateUI(acc) {
     // display account balacne
     calcDispalyBalance(acc);
 
@@ -154,7 +185,7 @@ const updateUI = (acc) => {
 
     // deposits, widthrawals and interest
     calcDiplaySummary(acc);
-};
+}
 
 const displayMovement = (acc, sort = false) => {
     containerMovements.innerHTML = '';
@@ -180,25 +211,23 @@ const displayMovement = (acc, sort = false) => {
             acc.currency
         );
 
+        // list the movements on the UI
         const movementType = obj.movements > 0 ? 'deposit' : 'withdrawal';
         const movementsHtmlElement = `
             <div class="movements__row">
-                <div class="movements__type movements__type--${movementType}"> ${
-            i + 1
-        } ${movementType} </div>
+                <div class="movements__type movements__type--${movementType}"> ${i + 1} ${movementType} </div>
                 <div class="movements__date">${fullDateAndtime}</div>
                 <div class="movements__value">${localizedMovements}</div>
             </div>
         `;
-        containerMovements.insertAdjacentHTML(
-            'afterbegin',
-            movementsHtmlElement
-        );
+        containerMovements.insertAdjacentHTML('afterbegin',movementsHtmlElement);
     });
 };
 
 const calcDispalyBalance = (acc) => {
+    // Get the users balance, using reduce method as it returns an accumulated number out of the transactions
     const balance = acc.movements.reduce((acc, curr) => acc + curr);
+    // Assign Balance to user object
     acc.balance = balance;
     labelBalance.textContent = formateCurreny(
         acc.balance,
@@ -241,13 +270,15 @@ const calcDiplaySummary = (acc) => {
     );
 };
 
-let currentAccount;
+let currentAccount, loginTimerCountDown;
 const loginFunctionality = (e) => {
     e.preventDefault();
 
+    // Get the username and password
     const enteredUsername = inputLoginUsername.value.trim();
     const entredPin = Number(inputLoginPin.value.trim());
 
+    // Retrieve the logged in user
     currentAccount = accounts.find((acc) => acc.userName === enteredUsername);
 
     // check the password
@@ -275,8 +306,14 @@ const loginFunctionality = (e) => {
         options
     ).format(now);
 
+    // check if a user is logged in and clear their timeout
+    if(loginTimerCountDown) clearInterval(loginTimerCountDown);
+    // And then set timer for the newly logged in user
+    loginTimerCountDown = setLogoutTimer();
+
     updateUI(currentAccount);
 
+    // clear the input
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 };
@@ -314,13 +351,19 @@ const moneyTransferFunctionality = (e) => {
     updateUI(currentAccount);
     inputTransferTo.value = inputTransferAmount.value = '';
     inputTransferAmount.blur();
+
+    // Reset login timer for activity
+    clearInterval(loginTimerCountDown);
+    loginTimerCountDown = setLogoutTimer();
 };
 
 const requestLoanFunctionality = (e) => {
     e.preventDefault();
 
+    // Get the Request requested loan amount
     const loanAmount = Math.round(Number(inputLoanAmount.value.trim()));
 
+    // 
     if (
         loanAmount > 0 &&
         currentAccount.balance > 0 &&
@@ -328,7 +371,7 @@ const requestLoanFunctionality = (e) => {
     ) {
         setTimeout(() => {
             currentAccount.movements.push(loanAmount);
-            currentAccount.movementsDate.push(new Date().toISOString());
+            currentAccount.movementsDate.push(new Date() );
             updateUI(currentAccount);
             labelWelcome.textContent = 'Congrats, Your Loan Request Approved';
             inputLoanAmount.value = '';
@@ -336,6 +379,10 @@ const requestLoanFunctionality = (e) => {
     } else {
         labelWelcome.textContent = 'Insufficient Balance or History';
     }
+
+    // reset login timer for activity
+    clearInterval(loginTimerCountDown);
+    loginTimerCountDown = setLogoutTimer();
 };
 
 const closeAccountFunctionality = (e) => {
